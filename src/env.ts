@@ -12,7 +12,7 @@ const STRATEGIES: readonly Strategy[] = ['getuser', 'jwks', 'hs256']
 const missing: string[] = []
 
 function required(name: string): string {
-  const value = Bun.env[name]
+  const value = process.env[name]
   if (!value) {
     missing.push(name)
     return ''
@@ -21,10 +21,10 @@ function required(name: string): string {
 }
 
 function optional(name: string): string | undefined {
-  return Bun.env[name] || undefined
+  return process.env[name] || undefined
 }
 
-const rawStrategy = Bun.env.AUTH_VERIFY_STRATEGY ?? 'getuser'
+const rawStrategy = process.env.AUTH_VERIFY_STRATEGY ?? 'getuser'
 if (!STRATEGIES.includes(rawStrategy as Strategy)) {
   console.error(
     `❌ AUTH_VERIFY_STRATEGY must be one of ${STRATEGIES.join(', ')} (got "${rawStrategy}")`,
@@ -33,8 +33,8 @@ if (!STRATEGIES.includes(rawStrategy as Strategy)) {
 }
 
 export const env = {
-  NODE_ENV: Bun.env.NODE_ENV ?? 'development',
-  PORT: Number(Bun.env.PORT ?? 3000),
+  NODE_ENV: process.env.NODE_ENV ?? 'development',
+  PORT: Number(process.env.PORT ?? 3000),
 
   // Supabase project credentials — server-side only, never shipped to Electron.
   SUPABASE_URL: required('SUPABASE_URL'),
@@ -54,7 +54,7 @@ export const env = {
   GOOGLE_REDIRECT_URI: optional('GOOGLE_REDIRECT_URI'),
 
   // Deep link Electron is 302'd to after the OAuth dance, just to refocus it.
-  OAUTH_SUCCESS_DEEP_LINK: Bun.env.OAUTH_SUCCESS_DEEP_LINK ?? 'yato://oauth/callback',
+  OAUTH_SUCCESS_DEEP_LINK: process.env.OAUTH_SUCCESS_DEEP_LINK ?? 'yato://oauth/callback',
 } as const
 
 if (missing.length > 0) {

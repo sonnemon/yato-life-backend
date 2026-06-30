@@ -22,6 +22,28 @@ bun run start      # plain
 bun run typecheck
 ```
 
+Local paths are at the root (`/health`, `/calendar/...`). On Vercel they live
+under `/api` (see Deploy).
+
+## Deploy (Vercel)
+
+The same Hono app (`src/app.ts`) runs locally on Bun (`src/index.ts`) and on
+Vercel as a serverless function (`api/[[...route]].ts`, via `hono/vercel`).
+On Vercel every route is served under **`/api`** — the public API base is
+`https://<project>.vercel.app/api`.
+
+1. **Project settings:** Framework Preset = *Other*, Build Command = *(empty)*,
+   Output Directory = *(empty)*. `vercel.json` already pins these. Install runs
+   `bun install` (a `bun.lock` is present). Do **not** add a `tsc`/`bun build`
+   step — Vercel bundles the function itself (that's what fixes the old
+   `ERR_MODULE_NOT_FOUND`).
+2. **Environment variables** (Vercel → Settings → Environment Variables): set the
+   same keys as `.env.example` *except* `PORT`. In particular
+   `GOOGLE_REDIRECT_URI = https://<project>.vercel.app/api/calendar/google/callback`.
+3. **Google Console:** register that exact redirect URI.
+4. **Client base URL:** point Electron at `https://<project>.vercel.app/api`.
+5. **Verify:** `GET https://<project>.vercel.app/api/health` and `/api/health/ready`.
+
 ## Endpoints
 
 | Method | Path                                       | Auth        | Description                               |
