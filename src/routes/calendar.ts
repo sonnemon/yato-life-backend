@@ -1,6 +1,6 @@
 import { type Context, Hono } from 'hono'
-import { requireAuth } from '../auth/middleware'
-import { renderCallbackPage } from '../calendar/callback-page'
+import { requireAuth } from '../auth/middleware.js'
+import { renderCallbackPage } from '../calendar/callback-page.js'
 import {
   deleteConnection,
   getCredential,
@@ -8,18 +8,18 @@ import {
   resolveContext,
   upsertCredential,
   type CredentialRow,
-} from '../calendar/credentials'
+} from '../calendar/credentials.js'
 import {
   type CalendarEvent,
   type CalendarEventInput,
   type CalendarProvider,
   isOAuthProvider,
   type ProviderId,
-} from '../calendar/provider'
-import { getProvider, listProviders } from '../calendar/registry'
-import { signState, verifyState } from '../calendar/state'
-import { env } from '../env'
-import type { AppEnv } from '../types'
+} from '../calendar/provider.js'
+import { getProvider, listProviders } from '../calendar/registry.js'
+import { signState, verifyState } from '../calendar/state.js'
+import { env } from '../env.js'
+import type { AppEnv } from '../types.js'
 
 export const calendar = new Hono<AppEnv>()
 

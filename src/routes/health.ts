@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { configReport } from '../env'
+import { configReport } from '../env.js'
 
 export const health = new Hono()
 

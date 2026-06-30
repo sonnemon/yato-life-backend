@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import { requireAuth } from '../auth/middleware'
-import type { AppEnv } from '../types'
+import { requireAuth } from '../auth/middleware.js'
+import type { AppEnv } from '../types.js'
 
 export const me = new Hono<AppEnv>()
 

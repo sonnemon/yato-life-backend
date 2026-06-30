@@ -1,7 +1,7 @@
-import type { CalendarProvider, ProviderId } from './provider'
-import { appleCalendarProvider } from './providers/apple'
-import { googleCalendarProvider } from './providers/google'
-import { microsoftCalendarProvider } from './providers/microsoft'
+import type { CalendarProvider, ProviderId } from './provider.js'
+import { appleCalendarProvider } from './providers/apple.js'
+import { googleCalendarProvider } from './providers/google.js'
+import { microsoftCalendarProvider } from './providers/microsoft.js'
 
 const providers = new Map<ProviderId, CalendarProvider>(
   [googleCalendarProvider, microsoftCalendarProvider, appleCalendarProvider].map((p) => [p.id, p]),

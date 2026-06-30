@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { env } from '../env'
+import { env } from '../env.js'
 
 /**
  * Privileged client — uses the service_role key and BYPASSES RLS.

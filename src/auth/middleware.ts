@@ -1,6 +1,6 @@
 import { createMiddleware } from 'hono/factory'
-import type { AppEnv } from '../types'
-import { AuthError, verifyToken } from './verifier'
+import type { AppEnv } from '../types.js'
+import { AuthError, verifyToken } from './verifier.js'
 
 /**
  * Bearer guard. Verifies the `Authorization: Bearer <jwt>` header via the

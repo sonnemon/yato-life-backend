@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../lib/supabase'
-import { type CalendarProvider, isOAuthProvider, type ProviderContext, type ProviderId, type TokenSet } from './provider'
+import { supabaseAdmin } from '../lib/supabase.js'
+import { type CalendarProvider, isOAuthProvider, type ProviderContext, type ProviderId, type TokenSet } from './provider.js'
 
 const TABLE = 'calendar_credentials'
 // Refresh a bit early so a token doesn't expire mid-request.

@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose'
-import { env } from '../env'
-import { supabaseAuth } from '../lib/supabase'
+import { env } from '../env.js'
+import { supabaseAuth } from '../lib/supabase.js'
 
 /** Normalized identity derived from a verified Supabase JWT. */
 export type AuthUser = {

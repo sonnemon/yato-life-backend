@@ -2,11 +2,11 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import { CalendarApiError, NotImplementedError } from './calendar/provider'
-import { calendar } from './routes/calendar'
-import { health } from './routes/health'
-import { me } from './routes/me'
-import type { AppEnv } from './types'
+import { CalendarApiError, NotImplementedError } from './calendar/provider.js'
+import { calendar } from './routes/calendar.js'
+import { health } from './routes/health.js'
+import { me } from './routes/me.js'
+import type { AppEnv } from './types.js'
 
 /**
  * The Hono application — runtime-agnostic. The Bun entry (`src/index.ts`) and the

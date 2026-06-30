@@ -1,6 +1,6 @@
 import { jwtVerify, SignJWT } from 'jose'
-import { env } from '../env'
-import type { ProviderId } from './provider'
+import { env } from '../env.js'
+import type { ProviderId } from './provider.js'
 
 /**
  * OAuth `state` is a short-lived signed JWT instead of a DB row. It binds the

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
-import app from '../src/app'
+import app from '../src/app.js'
 
 // Use the Node.js runtime (supabase-js, jose and fetch all work there).
 export const config = { runtime: 'nodejs' }

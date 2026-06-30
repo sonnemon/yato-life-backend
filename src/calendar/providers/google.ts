@@ -1,4 +1,4 @@
-import { env } from '../../env'
+import { env } from '../../env.js'
 import {
   CalendarApiError,
   type CalendarEvent,
@@ -7,7 +7,7 @@ import {
   type OAuthCalendarProvider,
   type ProviderContext,
   type TokenSet,
-} from '../provider'
+} from '../provider.js'
 
 const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
