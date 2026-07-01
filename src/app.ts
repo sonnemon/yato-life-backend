@@ -9,8 +9,9 @@ import { me } from './routes/me.js'
 import type { AppEnv } from './types.js'
 
 /**
- * The Hono application — runtime-agnostic. The Bun entry (`src/index.ts`) and the
- * Vercel function (`api/[[...route]].ts`) both import this and attach a server.
+ * The Hono application — runtime-agnostic. The Bun entry (`src/index.ts`) wraps
+ * this to serve locally; on Vercel the native Hono preset picks up this default
+ * export directly (zero-config, no `api/` handler).
  */
 const app = new Hono<AppEnv>()
 

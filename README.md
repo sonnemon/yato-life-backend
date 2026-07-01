@@ -22,27 +22,26 @@ bun run start      # plain
 bun run typecheck
 ```
 
-Local paths are at the root (`/health`, `/calendar/...`). On Vercel they live
-under `/api` (see Deploy).
+Paths are identical locally and on Vercel — all served at the root
+(`/health`, `/calendar/...`). No `/api` prefix.
 
 ## Deploy (Vercel)
 
 The same Hono app (`src/app.ts`) runs locally on Bun (`src/index.ts`) and on
-Vercel as a serverless function (`api/[[...route]].ts`, via `hono/vercel`).
-On Vercel every route is served under **`/api`** — the public API base is
-`https://<project>.vercel.app/api`.
+Vercel via the **native Hono framework preset** (zero-config): Vercel detects
+`src/app.ts`'s default export and turns each route into a Vercel Function. No
+`api/` handler and no `hono/vercel` glue. The public API base is
+`https://<project>.vercel.app`.
 
-1. **Project settings:** Framework Preset = *Other*, Build Command = *(empty)*,
-   Output Directory = *(empty)*. `vercel.json` already pins these. Install runs
-   `bun install` (a `bun.lock` is present). Do **not** add a `tsc`/`bun build`
-   step — Vercel bundles the function itself (that's what fixes the old
-   `ERR_MODULE_NOT_FOUND`).
+1. **Project settings:** Framework Preset = **Hono** (`vercel.json` already pins
+   `"framework": "hono"`). Leave Build Command / Output Directory empty — the
+   preset handles bundling. Install runs `bun install` (a `bun.lock` is present).
 2. **Environment variables** (Vercel → Settings → Environment Variables): set the
    same keys as `.env.example` *except* `PORT`. In particular
-   `GOOGLE_REDIRECT_URI = https://<project>.vercel.app/api/calendar/google/callback`.
+   `GOOGLE_REDIRECT_URI = https://<project>.vercel.app/calendar/google/callback`.
 3. **Google Console:** register that exact redirect URI.
-4. **Client base URL:** point Electron at `https://<project>.vercel.app/api`.
-5. **Verify:** `GET https://<project>.vercel.app/api/health` and `/api/health/ready`.
+4. **Client base URL:** point Electron at `https://<project>.vercel.app`.
+5. **Verify:** `GET https://<project>.vercel.app/health` and `/health/ready`.
 
 ## Endpoints
 
