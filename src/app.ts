@@ -8,19 +8,28 @@ import { health } from './routes/health.js'
 import { me } from './routes/me.js'
 import type { AppEnv } from './types.js'
 
+// Business routes, grouped so they can all be mounted under a single base path.
+const api = new Hono<AppEnv>()
+api.route('/health', health)
+api.route('/me', me)
+api.route('/calendar', calendar)
+
 /**
  * The Hono application — runtime-agnostic. The Bun entry (`src/index.ts`) wraps
  * this to serve locally; on Vercel the native Hono preset picks up this default
  * export directly (zero-config, no `api/` handler).
+ *
+ * Everything is served under `/api` (both locally and on Vercel), so the public
+ * base is `<host>/api`. Cross-cutting middleware and the error/notFound handlers
+ * live here on the top-level app — Hono ignores those on sub-apps mounted via
+ * `.route()`.
  */
 const app = new Hono<AppEnv>()
 
 app.use('*', logger())
 app.use('*', cors())
 
-app.route('/health', health)
-app.route('/me', me)
-app.route('/calendar', calendar)
+app.route('/api', api)
 
 app.notFound((c) => c.json({ error: 'Not Found' }, 404))
 app.onError((err, c) => {

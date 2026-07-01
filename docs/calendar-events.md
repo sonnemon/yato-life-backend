@@ -6,7 +6,8 @@ from the connection.
 
 ## Common
 
-- **Base URL:** your API origin (e.g. the ngrok URL in dev).
+- **Base URL:** your API origin **plus `/api`** (e.g. `https://yato-flow.com/api`,
+  or the ngrok URL + `/api` in dev). All paths below are relative to that base.
 - **Auth:** every request needs the Supabase access token:
   `Authorization: Bearer <supabase-jwt>`.
   (In dev over ngrok, also send `ngrok-skip-browser-warning: true`.)

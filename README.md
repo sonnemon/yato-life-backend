@@ -22,26 +22,27 @@ bun run start      # plain
 bun run typecheck
 ```
 
-Paths are identical locally and on Vercel — all served at the root
-(`/health`, `/calendar/...`). No `/api` prefix.
+All routes are mounted under **`/api`**, identically locally and on Vercel
+(`/api/health`, `/api/calendar/...`). The paths in the table below are relative
+to that base.
 
 ## Deploy (Vercel)
 
 The same Hono app (`src/app.ts`) runs locally on Bun (`src/index.ts`) and on
 Vercel via the **native Hono framework preset** (zero-config): Vercel detects
 `src/app.ts`'s default export and turns each route into a Vercel Function. No
-`api/` handler and no `hono/vercel` glue. The public API base is
-`https://<project>.vercel.app`.
+`api/` handler and no `hono/vercel` glue. Everything is served under `/api`, so
+the public API base is `https://yato-flow.com/api`.
 
 1. **Project settings:** Framework Preset = **Hono** (`vercel.json` already pins
    `"framework": "hono"`). Leave Build Command / Output Directory empty — the
    preset handles bundling. Install runs `bun install` (a `bun.lock` is present).
 2. **Environment variables** (Vercel → Settings → Environment Variables): set the
    same keys as `.env.example` *except* `PORT`. In particular
-   `GOOGLE_REDIRECT_URI = https://<project>.vercel.app/calendar/google/callback`.
+   `GOOGLE_REDIRECT_URI = https://yato-flow.com/api/calendar/google/callback`.
 3. **Google Console:** register that exact redirect URI.
-4. **Client base URL:** point Electron at `https://<project>.vercel.app`.
-5. **Verify:** `GET https://<project>.vercel.app/health` and `/health/ready`.
+4. **Client base URL:** point Electron at `https://yato-flow.com/api`.
+5. **Verify:** `GET https://yato-flow.com/api/health` and `/api/health/ready`.
 
 ## Endpoints
 
@@ -67,7 +68,7 @@ Event endpoints (list + bulk-create) are documented in detail in
 Authenticated requests send the Supabase access token:
 
 ```bash
-curl http://localhost:3000/me -H "Authorization: Bearer <supabase-jwt>"
+curl http://localhost:3000/api/me -H "Authorization: Bearer <supabase-jwt>"
 ```
 
 ## Calendar integrations
@@ -93,7 +94,7 @@ connection id.
 ### Google Cloud setup
 
 - Create an **OAuth 2.0 Client (Web application)**; set the redirect URI to your
-  `GOOGLE_REDIRECT_URI` (e.g. `http://127.0.0.1:3000/calendar/google/callback`).
+  `GOOGLE_REDIRECT_URI` (e.g. `http://127.0.0.1:3000/api/calendar/google/callback`).
 - Enable the **Google Calendar API**.
 - Put the client id/secret in `.env`, and set `OAUTH_STATE_SECRET`
   (`openssl rand -hex 32`).

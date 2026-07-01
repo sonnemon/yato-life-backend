@@ -1,49 +1,27 @@
-import { type Context, Hono } from 'hono'
+import { Hono } from 'hono'
 import { requireAuth } from '../auth/middleware.js'
 import { renderCallbackPage } from '../calendar/callback-page.js'
 import {
   deleteConnection,
-  getCredential,
   listConnections,
   resolveContext,
   upsertCredential,
-  type CredentialRow,
 } from '../calendar/credentials.js'
 import {
   type CalendarEvent,
   type CalendarEventInput,
-  type CalendarProvider,
   isOAuthProvider,
-  type ProviderId,
 } from '../calendar/provider.js'
 import { getProvider, listProviders } from '../calendar/registry.js'
 import { signState, verifyState } from '../calendar/state.js'
 import { env } from '../env.js'
 import type { AppEnv } from '../types.js'
+import { REASON_TEXT } from './utils/callback.js'
+import { resolveConnection } from './utils/connection.js'
+import { BULK_CONCURRENCY, BULK_MAX, parseEventInput, parseEventPatch } from './utils/events.js'
+import { isProviderId, redirectUriFor } from './utils/providers.js'
 
 export const calendar = new Hono<AppEnv>()
-
-const PROVIDER_IDS: readonly ProviderId[] = ['google', 'microsoft', 'apple']
-function isProviderId(value: string): value is ProviderId {
-  return (PROVIDER_IDS as readonly string[]).includes(value)
-}
-
-/** The OAuth redirect URI registered with each provider (must match exactly). */
-function redirectUriFor(provider: ProviderId): string | undefined {
-  if (provider === 'google') return env.GOOGLE_REDIRECT_URI
-  return undefined
-}
-
-/** Human-friendly text for the callback error page, keyed by failure reason. */
-const REASON_TEXT: Record<string, string> = {
-  access_denied: 'Cancelaste el permiso en Google.',
-  invalid_state: 'La sesión de conexión expiró. Vuelve a intentarlo.',
-  state_mismatch: 'La sesión de conexión no es válida. Vuelve a intentarlo.',
-  provider_unavailable: 'Ese proveedor no está disponible todavía.',
-  redirect_not_configured: 'Falta configuración del servidor (redirect URI).',
-  invalid_callback: 'La respuesta del proveedor no es válida.',
-  oauth_failed: 'No se pudo completar la conexión. Vuelve a intentarlo.',
-}
 
 // ---------------------------------------------------------------------------
 // OAuth callback — the ONLY unauthenticated route. It's registered BEFORE the
@@ -164,64 +142,6 @@ calendar.delete('/connections/:id', async (c) => {
 // Events, scoped to one connection (a specific provider account).
 // ---------------------------------------------------------------------------
 
-/** Load the credential + its provider, or return an error Response. */
-async function resolveConnection(
-  c: Context<AppEnv>,
-): Promise<{ cred: CredentialRow; prov: CalendarProvider } | Response> {
-  const user = c.get('user')
-  const id = c.req.param('id')
-  const cred = id ? await getCredential(user.id, id) : null
-  if (!cred) return c.json({ error: 'Connection not found' }, 404)
-  const prov = getProvider(cred.provider)
-  if (!prov || !prov.implemented) return c.json({ error: 'Provider not available' }, 501)
-  return { cred, prov }
-}
-
-type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string }
-
-function isIsoDateTime(value: unknown): value is string {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value))
-}
-
-function parseEventInput(body: unknown): ParseResult<CalendarEventInput> {
-  if (!body || typeof body !== 'object') return { ok: false, error: 'Body must be a JSON object' }
-  const b = body as Record<string, unknown>
-  if (typeof b.title !== 'string' || !b.title.trim()) return { ok: false, error: '"title" is required' }
-  if (!isIsoDateTime(b.start)) return { ok: false, error: '"start" must be an ISO 8601 datetime' }
-  if (!isIsoDateTime(b.end)) return { ok: false, error: '"end" must be an ISO 8601 datetime' }
-  const value: CalendarEventInput = { title: b.title, start: b.start, end: b.end }
-  if (typeof b.description === 'string') value.description = b.description
-  if (typeof b.location === 'string') value.location = b.location
-  return { ok: true, value }
-}
-
-function parseEventPatch(body: unknown): ParseResult<Partial<CalendarEventInput>> {
-  if (!body || typeof body !== 'object') return { ok: false, error: 'Body must be a JSON object' }
-  const b = body as Record<string, unknown>
-  const value: Partial<CalendarEventInput> = {}
-  if (b.title !== undefined) {
-    if (typeof b.title !== 'string' || !b.title.trim()) return { ok: false, error: '"title" must be a non-empty string' }
-    value.title = b.title
-  }
-  if (b.start !== undefined) {
-    if (!isIsoDateTime(b.start)) return { ok: false, error: '"start" must be an ISO 8601 datetime' }
-    value.start = b.start
-  }
-  if (b.end !== undefined) {
-    if (!isIsoDateTime(b.end)) return { ok: false, error: '"end" must be an ISO 8601 datetime' }
-    value.end = b.end
-  }
-  if (b.description !== undefined) {
-    if (typeof b.description !== 'string') return { ok: false, error: '"description" must be a string' }
-    value.description = b.description
-  }
-  if (b.location !== undefined) {
-    if (typeof b.location !== 'string') return { ok: false, error: '"location" must be a string' }
-    value.location = b.location
-  }
-  return { ok: true, value }
-}
-
 // List events from a connection.
 calendar.get('/connections/:id/events', async (c) => {
   const resolved = await resolveConnection(c)
@@ -252,12 +172,9 @@ calendar.post('/connections/:id/events', async (c) => {
   return c.json({ event }, 201)
 })
 
-// Bulk-create events on a connection. Google has no native bulk insert, so this
-// fans out to individual creates with bounded concurrency and reports per-item
-// results (partial success is normal). Validation is all-or-nothing.
-const BULK_MAX = 50
-const BULK_CONCURRENCY = 5
-
+// Bulk-create events on a connection. Fans out to individual creates with
+// bounded concurrency and reports per-item results (partial success is normal).
+// Validation is all-or-nothing.
 calendar.post('/connections/:id/events/bulk', async (c) => {
   const resolved = await resolveConnection(c)
   if (resolved instanceof Response) return resolved
